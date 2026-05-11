@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Display Overlay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: transparent; overflow: hidden; height: 100vh; margin: 0; }
+        .reaction-item {
+            position: absolute;
+            bottom: -150px;
+            animation: floatUp 5s linear forwards;
+            will-change: transform;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; transform: translateY(-100px) scale(1.2) rotate(10deg); }
+            90% { opacity: 1; }
+            100% { transform: translateY(-110vh) scale(1) rotate(-10deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, query, limitToLast, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // GANTI DENGAN CONFIG FIREBASE KAMU (Sama dengan di atas)
+        const firebaseConfig = { ... };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const reactionsRef = query(ref(db, 'reactions'), limitToLast(1));
+
+        const container = document.getElementById('container');
+
+        // Listen data baru
+        onChildAdded(reactionsRef, (snapshot) => {
+            const data = snapshot.val();
+            renderReaction(data);
+        });
+
+        function renderReaction(data) {
+            const el = document.createElement('div');
+            el.className = 'reaction-item';
+            el.style.left = Math.random() * 85 + 'vw';
+
+            if (data.type === 'emoji') {
+                el.innerHTML = `<span class="text-7xl drop-shadow-lg">${data.value}</span>`;
+            } else {
+                el.innerHTML = `<img src="${data.value}" class="w-48 rounded-2xl shadow-2xl border-4 border-white">`;
+            }
+
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 5500);
+        }
+    </script>
+</body>
+</html>
