@@ -24,11 +24,21 @@
     <div id="container"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, query, limitToLast, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+        import { getDatabase, ref, query, limitToLast, onChildAdded } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 
         // GANTI DENGAN CONFIG FIREBASE KAMU (Sama dengan di atas)
-        const firebaseConfig = { ... };
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyBsfBEfdLZ2_mWsHrfiGQozx0WzZmQnXk8",
+            authDomain: "live-reaction-63496.firebaseapp.com",
+            databaseURL: "https://live-reaction-63496-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "live-reaction-63496",
+            storageBucket: "live-reaction-63496.firebasestorage.app",
+            messagingSenderId: "481124792209",
+            appId: "1:481124792209:web:22c19c239471a443d94c30",
+            measurementId: "G-937NMZTFCF"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
