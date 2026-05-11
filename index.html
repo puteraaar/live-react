@@ -3,26 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reaction Panel</title>
+    <title>Reaction Panel - Wisuda ABBS</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .mode-spam { border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+        .mode-cooldown { opacity: 0.4; pointer-events: none; }
+    </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center p-6">
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center p-6 select-none">
     
-    <header class="text-center mb-8">
+    <header class="text-center mb-6">
         <h1 class="text-2xl font-bold text-blue-400">Live Reaction Wisuda</h1>
+        <div id="status-badge" class="mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-green-500 text-white uppercase tracking-widest">
+            Ready
+        </div>
     </header>
 
-    <div class="grid grid-cols-4 gap-4 mb-10 w-full max-w-sm">
-        <button onclick="send('emoji', '🎓')" class="btn-react text-4xl p-4 bg-slate-800 rounded-2xl active:scale-90 transition">🎓</button>
-        <button onclick="send('emoji', '👏')" class="btn-react text-4xl p-4 bg-slate-800 rounded-2xl active:scale-90 transition">👏</button>
-        <button onclick="send('emoji', '❤️')" class="btn-react text-4xl p-4 bg-slate-800 rounded-2xl active:scale-90 transition">❤️</button>
-        <button onclick="send('emoji', '🔥')" class="btn-react text-4xl p-4 bg-slate-800 rounded-2xl active:scale-90 transition">🔥</button>
+    <!-- Progress Bar -->
+    <div class="w-full max-w-xs bg-slate-800 h-2 rounded-full mb-8 overflow-hidden">
+        <div id="timer-bar" class="bg-blue-500 h-full w-0 transition-all duration-100"></div>
+    </div>
+
+    <!-- Grid Emoji -->
+    <div id="button-container" class="grid grid-cols-4 gap-4 mb-10 w-full max-w-sm">
+        <button onclick="send('emoji', '🎓')" class="btn-react text-4xl p-4 bg-slate-800 rounded-2xl active:scale-95 transition border-2 border-transparent">🎓</button>
+        <button onclick="send('emoji', '👏')" class="btn-react text-4xl p-4 bg-slate-800 rounded-2xl active:scale-95 transition border-2 border-transparent">👏</button>
+        <button onclick="send('emoji', '❤️')" class="btn-react text-4xl p-4 bg-slate-800 rounded-2xl active:scale-95 transition border-2 border-transparent">❤️</button>
+        <button onclick="send('emoji', '🔥')" class="btn-react text-4xl p-4 bg-slate-800 rounded-2xl active:scale-95 transition border-2 border-transparent">🔥</button>
+    </div>
+
+    <!-- Pilihan GIF -->
+    <div class="w-full max-w-sm">
+        <h3 class="text-sm font-semibold mb-4 text-slate-500 uppercase tracking-widest">Kirim GIF</h3>
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="send('gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJndm80Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/l41lTfhu899rXnOQU/giphy.gif')" class="btn-react overflow-hidden rounded-xl h-24 border-2 border-transparent active:scale-95 transition">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJndm80Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/l41lTfhu899rXnOQU/giphy.gif" class="w-full h-full object-cover">
+            </button>
+            <button onclick="send('gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJndm80Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKVUn7iM8FMEU24/giphy.gif')" class="btn-react overflow-hidden rounded-xl h-24 border-2 border-transparent active:scale-95 transition">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJndm80Z3R6Z3R6Z3R6Z3R6Z3R6Z3R6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7TKVUn7iM8FMEU24/giphy.gif" class="w-full h-full object-cover">
+            </button>
+        </div>
     </div>
 
     <script type="module">
-        // Import inti Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-        // Import khusus Database (Inilah yang tadi kurang)
         import { getDatabase, ref, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
         const firebaseConfig = {
@@ -32,23 +56,88 @@
             projectId: "live-reaction-63496",
             storageBucket: "live-reaction-63496.firebasestorage.app",
             messagingSenderId: "481124792209",
-            appId: "1:481124792209:web:22c19c239471a443d94c30",
-            measurementId: "G-937NMZTFCF"
+            appId: "1:481124792209:web:22c19c239471a443d94c30"
         };
 
-        // Inisialisasi
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const reactionsRef = ref(db, 'reactions');
 
-        // Daftarkan fungsi ke window agar bisa dipanggil onclick
+        let isCooldown = false;
+        let isSpamMode = false;
+        let spamTimeout = null;
+
+        const spamDuration = 5000;    // 5 detik bebas klik
+        const cooldownDuration = 5000; // 5 detik istirahat
+
+        const timerBar = document.getElementById('timer-bar');
+        const statusBadge = document.getElementById('status-badge');
+        const container = document.getElementById('button-container');
+        const buttons = document.querySelectorAll('.btn-react');
+
         window.send = function(type, value) {
+            if (isCooldown) return;
+
+            // Jika klik pertama, mulai timer spam 5 detik
+            if (!isSpamMode) {
+                startSpamSession();
+            }
+
+            // Kirim ke Firebase
             push(reactionsRef, {
-            type: type,
-            value: value,
-            timestamp: serverTimestamp()
+                type: type,
+                value: value,
+                timestamp: serverTimestamp()
             });
         };
-        </script>
+
+        function startSpamSession() {
+            isSpamMode = true;
+            statusBadge.innerText = "Spam Mode!";
+            statusBadge.className = "mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white uppercase animate-bounce";
+            
+            buttons.forEach(btn => btn.classList.add('mode-spam'));
+
+            // Visual Timer Bar (5 detik mengisi)
+            timerBar.style.transition = `width ${spamDuration}ms linear`;
+            timerBar.style.width = "100%";
+            timerBar.style.backgroundColor = "#ef4444";
+
+            // Setelah 5 detik spam, masuk ke Cooldown
+            spamTimeout = setTimeout(() => {
+                startCooldownSession();
+            }, spamDuration);
+        }
+
+        function startCooldownSession() {
+            isSpamMode = false;
+            isCooldown = true;
+            
+            statusBadge.innerText = "Cooldown...";
+            statusBadge.className = "mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-400 uppercase";
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('mode-spam');
+                btn.classList.add('mode-cooldown');
+            });
+
+            // Visual Timer Bar (5 detik mengosong kembali)
+            timerBar.style.transition = `width ${cooldownDuration}ms linear`;
+            timerBar.style.width = "0%";
+            timerBar.style.backgroundColor = "#3b82f6";
+
+            setTimeout(() => {
+                resetSession();
+            }, cooldownDuration);
+        }
+
+        function resetSession() {
+            isCooldown = false;
+            statusBadge.innerText = "Ready";
+            statusBadge.className = "mt-2 inline-block px-3 py-1 rounded-full text-xs font-bold bg-green-500 text-white uppercase tracking-widest";
+            
+            buttons.forEach(btn => btn.classList.remove('mode-cooldown'));
+        }
+    </script>
 </body>
 </html>
